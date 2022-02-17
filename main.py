@@ -103,7 +103,7 @@ def main(args):
             for epoch in range(args.num_epoch):
                 t0 = time.time()
                 # alpha = 0.01, Beta=0. [best]
-                loss_clf, loss_contrast = train_gnn(g, x, y, model, optimizer, train_idx, weight_node=None, Alpha=0.01, local_graph_loader=local_graph_loader, epoch=epoch)
+                loss_clf, loss_contrast = train_gnn(g, x, y, model, optimizer, train_idx, weight_node=None, Alpha=args.alpha, local_graph_loader=local_graph_loader, epoch=epoch)
                 history_loss_train.append(loss_clf.item())
                 t1 = time.time()
                 print('[Train:{}] loss:{:.3f}, loss_contrast:{:.3f}, training time:{}'.format(epoch, loss_clf, loss_contrast, t1 - t0))
@@ -150,6 +150,7 @@ if __name__ == '__main__':
     ap.add_argument('--tribe_encoder_gnn', type=str, default='gin')
     ap.add_argument('--tribe_gnn', type=str, default='gin', choices=['gin'], help='gnn model used in tribe encoder.')
     ap.add_argument('--lr', type=float, default=3e-3, help='Initial learning rate for the optimizer.')
+    ap.add_argument('--alpha', type=float, default=0.01, help='weight for the contrastive loss term.')
     ap.add_argument('--weight_decay', type=float, default=5e-3, help='weight decay for the optimizer.')
     ap.add_argument('--fusion_mode', type=str, default='mlp', choices=['mlp', 'attention'], help='mode used to fuse the information from node attributes and tribe structure.')
     args = ap.parse_args()
