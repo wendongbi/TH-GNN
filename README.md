@@ -1,50 +1,54 @@
-# MM-GNN
+# TH-GNN
 
-Original implementation for the submission paper: Towards Modeling Of Neighbors' Feature Distribution:  Mix-Moment GNN With Adaptive Attention Mechanism.
+Original implementation for the paper, Company-as-Tribe: Company Risk Assessment On Tribe-Style Graph With Hierarchical Graph Neural Networks.
 
-Mix-Moment GNN (MM-GNN) is a Graph Neural Network Model that introduce Moment Methodes to GNN and use neighbors' feature distribution to enhance GNN-based methods. 
+In this paper, each listed company with its investment graph is viewed as a tribe, which is more informative than  a single company, and we propose a model for company risk assessment named TH-GNN. 
 
-![model_structure](/Users/biwendong/Desktop/research/msra/KDD22_code/MM-GNN-main/model_structure.png)
+![model_overview](model_structure.png)
 
 ## Installation
 
 ### Requirements
 
-* Linux with Python $\geq$ 3.7
-* PyTorch $\geq$ 1.7.1
-* Torch-geometric $\geq$ 2.0.2
-* Torch-scatter $\geq$ 2.0.7
-* Torch-sparse $\geq$ 0.6.9
+* Linux with Python >= 3.7
+
+* Pytorch >= 1.9.0
+
+* DGL >= 0.7.0
+
+* Scikit-learn >= 0.24.2
+
+* Network >= 2.6.2
+
+* Numpy >= 1.19.2
+
+  
 
 ## Quick Start
 
-## Datasets
+### Dataset
 
-The datasets used in this paper include 9 social graph datasets from Facebook Social Network: UGA50, GWU54, Northeastern19, Hamilton46, Caltech36, Howard90, UF21, Simmons81, Tulane29. All these 9 datasets are provided in this repository at path: `./dataset/facebook100`. 
-
-For other datasets used in the appendix, `torch_geometric.datasets` provides the dataset API and data spilts in the corresponding papers. 
+Due to company privacy and copyright issues in the design of the datasets we used in this paper, we do not disclose the company datasets and risk labels used in the paper, if you need the full dataset, please contact with us [biwendong20g@ict.ac.cn](biwendong20g@ict.ac.cn)
 
 ### Training
 
-#### MM-GNN
-
-We provide an example for running the script in MMGNN/run.sh
+We provide an example for training the TH-GNN model in ./run.sh
 
 ```shell
 python3 main.py \
-    --model MM_GNN \
-    --num_layer 2 \
-    --repeat 9 \
-    --num_epoch 200 \
-    --gpu 0 \
-    --data_dir ../data/Facebook100_pyg \
-    --dataset GWU54 \
-    --moment 3 \
-    --hidden 16 \
-    --mode attention \
-    --auto_fixed_seed \
-    --use_adj_norm \
+ --gpu 0 \
+ --local_num_layer 2 \
+ --hidden 64 \
+ --num_epoch 100 \
+ --tribe_encoder_gnn gin \
+ --lr 3e-3 \
+ --weight_decay 5e-3 \
+ --fusion_mode mlp \
+ --path_x {path to node attribute file} \
+ --path_y {path to node label file} \
+ --path_tribe_files {path to tribe-graph files} \
+ --path_tribe_order {path to tribe_graph order file}
 ```
 
-Please feel free to E-mail me [biwendong20@mails.ucas.ac.cn](biwendong20@mails.ucas.ac.cn) if you have any questions on running the code.
+If you have any questions on running the code, pleas feel free to E-mail me: [biwendong20g@ict.ac.cn](biwendong20g@ict.ac.cn) .
 
