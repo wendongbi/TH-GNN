@@ -224,7 +224,7 @@ class GraphEncoder(nn.Module):
         num_step_set2set=6,
         num_layer_set2set=3,
         norm=False,
-        gnn_model="mpnn",
+        gnn_model="gin",
         degree_input=False,
         lstm_as_gate=False,
         shortest_path_input=True,

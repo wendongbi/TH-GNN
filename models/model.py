@@ -5,39 +5,7 @@ import sys
 sys.path.append('./models')
 from TribeEncoder import GraphEncoder
 from criterions import NCESoftmaxLoss, NCESoftmaxLossNS
-class JumpingKnowledge(nn.Module):
-    def __init__(self, mode='cat', in_feats=None, num_layers=None):
-        super(JumpingKnowledge, self).__init__()
-        assert mode in ['cat', 'max', 'lstm'], \
-            "Expect mode to be 'cat', or 'max' or 'lstm', got {}".format(mode)
-        self.mode = mode
 
-        if mode == 'lstm':
-            assert in_feats is not None, 'in_feats is required for lstm mode'
-            assert num_layers is not None, 'num_layers is required for lstm mode'
-            hidden_size = (num_layers * in_feats) // 2
-            self.lstm = nn.LSTM(in_feats, hidden_size, bidirectional=True, batch_first=True)
-            self.att = nn.Linear(2 * hidden_size, 1)
-
-    def reset_parameters(self):
-
-        if self.mode == 'lstm':
-            self.lstm.reset_parameters()
-            self.att.reset_parameters()
-
-    def forward(self, feat_list):
-
-        if self.mode == 'cat':
-            return torch.cat(feat_list, dim=-1)
-        elif self.mode == 'max':
-            return torch.stack(feat_list, dim=-1).max(dim=-1)[0]
-        else:
-            # LSTM
-            stacked_feat_list = torch.stack(feat_list, dim=1) # (N, num_layers, in_feats)
-            alpha, _ = self.lstm(stacked_feat_list)
-            alpha = self.att(alpha).squeeze(-1)            # (N, num_layers)
-            alpha = torch.softmax(alpha, dim=-1)
-            return (stacked_feat_list * alpha.unsqueeze(-1)).sum(dim=1)
 
 class AttnFusioner(nn.Module):
     def __init__(self, input_num=2, in_size=64, hidden=64):
@@ -76,8 +44,8 @@ class AttnFusioner(nn.Module):
 
 class THGNN(nn.Module):
     def __init__(self, in_size, out_size, hidden, mode='cat',\
-         num_layer=2, N=4040, gamma=0.1, use_memory=True, \
-             use_jk = True, use_attnFusioner = False,  norm=False,
+         num_layer=2, use_jk = True, use_attnFusioner = False,  norm=False,\
+             local_layer_num=5,  tribe_encoder_type='gin', \
              ):
         super(THGNN, self).__init__()
         self.adj_cache = None
@@ -93,11 +61,11 @@ class THGNN(nn.Module):
             output_dim=hidden,
             node_hidden_dim=64,
             edge_hidden_dim=64,
-            num_layers=5,
+            num_layers=local_layer_num,
             num_step_set2set=6,
             num_layer_set2set=3,
             norm=True,
-            gnn_model='gin',
+            gnn_model=tribe_encoder_type,
             degree_input=True,
             shortest_path_input=True,
             max_path_length=6,
@@ -108,7 +76,6 @@ class THGNN(nn.Module):
         )
         self.criterion = NCESoftmaxLossNS()
         self.nce_t = 0.07
-        self.gamma = gamma
         self.hidden = hidden
         self.mode = mode
         self.input_layer = nn.Linear(in_size, hidden)
@@ -135,9 +102,6 @@ class THGNN(nn.Module):
             else:
                 self.out_layer = nn.Linear(2 * hidden, out_size)
         
-        self.use_memory = use_memory
-        if use_memory:
-            self.memory = torch.zeros((N, out_size), requires_grad=False)
         self.reset_parameters()
     def reset_parameters(self):
         self.input_layer.reset_parameters()
@@ -149,13 +113,6 @@ class THGNN(nn.Module):
             self.jump.reset_parameters()
         self.attn_1.reset_parameters()
         self.attn_2.reset_parameters()
-
-    def update_memory(self, logits_detach, gamma=0.1):
-        # logits need to detach from the computation graph
-        assert logits_detach.requires_grad == False
-        if self.memory.device != logits_detach.device:
-            self.memory = self.memory.to(logits_detach.device)
-        self.memory = (1 - gamma) * self.memory + gamma * logits_detach
 
     def get_memory_similarity(self, logits_detach):
         # logits should not detach from the computation graph
@@ -227,11 +184,6 @@ class THGNN(nn.Module):
             logits = torch.sparse.mm(self.adj_cache, x)
 
         probs = torch.sigmoid(logits)
-        if self.use_memory:
-            mem = torch.cat([1-probs.detach(), probs.detach()], dim=-1)
-            self.update_memory(mem, gamma=self.gamma)
-            # self.update_memory(logits.detach(), gamma=self.gamma)
-            # sim_memory = self.get_memory_similarity(x.detach())
         
         return probs, contrast_loss, logits
 
@@ -284,3 +236,37 @@ class THGNN(nn.Module):
             hidden_list.append(x) # h_2, N*2d
             x = self.jump(hidden_list)
         return x
+
+class JumpingKnowledge(nn.Module):
+    def __init__(self, mode='cat', in_feats=None, num_layers=None):
+        super(JumpingKnowledge, self).__init__()
+        assert mode in ['cat', 'max', 'lstm'], \
+            "Expect mode to be 'cat', or 'max' or 'lstm', got {}".format(mode)
+        self.mode = mode
+
+        if mode == 'lstm':
+            assert in_feats is not None, 'in_feats is required for lstm mode'
+            assert num_layers is not None, 'num_layers is required for lstm mode'
+            hidden_size = (num_layers * in_feats) // 2
+            self.lstm = nn.LSTM(in_feats, hidden_size, bidirectional=True, batch_first=True)
+            self.att = nn.Linear(2 * hidden_size, 1)
+
+    def reset_parameters(self):
+
+        if self.mode == 'lstm':
+            self.lstm.reset_parameters()
+            self.att.reset_parameters()
+
+    def forward(self, feat_list):
+
+        if self.mode == 'cat':
+            return torch.cat(feat_list, dim=-1)
+        elif self.mode == 'max':
+            return torch.stack(feat_list, dim=-1).max(dim=-1)[0]
+        else:
+            # LSTM
+            stacked_feat_list = torch.stack(feat_list, dim=1) # (N, num_layers, in_feats)
+            alpha, _ = self.lstm(stacked_feat_list)
+            alpha = self.att(alpha).squeeze(-1)            # (N, num_layers)
+            alpha = torch.softmax(alpha, dim=-1)
+            return (stacked_feat_list * alpha.unsqueeze(-1)).sum(dim=1)
