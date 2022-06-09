@@ -1,8 +1,8 @@
 # TH-GNN
 
-Original implementation for the paper, Company-as-Tribe: Company Risk Assessment On Tribe-Style Graph With Hierarchical Graph Neural Networks.
+Official implementation of the KDD2022 paper, Company-as-Tribe: Company Risk Assessment On Tribe-Style Graph With Hierarchical Graph Neural Networks.
 
-In this paper, each listed company with its investment graph is viewed as a tribe, which is more informative than  a single company, and we propose a model for company risk assessment named TH-GNN. 
+TH-GNN (our proposed model) is a hierarchical graph neural network model for company financial risk assessment tasks. Each listed company with its investment graph is viewed as a tribe, which is more informative than  a single company. 
 
 ![model_overview](model_structure.png)
 
