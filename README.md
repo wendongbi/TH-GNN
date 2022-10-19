@@ -1,6 +1,6 @@
 # TH-GNN
 
-Official implementation of the KDD2022 paper, Company-as-Tribe: Company Risk Assessment On Tribe-Style Graph With Hierarchical Graph Neural Networks.
+Implementation of the KDD2022 paper, Company-as-Tribe: Company Risk Assessment On Tribe-Style Graph With Hierarchical Graph Neural Networks.
 
 TH-GNN (our proposed model) is a hierarchical graph neural network model for company financial risk assessment tasks. Each listed company with its investment graph is viewed as a tribe, which is more informative than  a single company. 
 
@@ -28,7 +28,7 @@ TH-GNN (our proposed model) is a hierarchical graph neural network model for com
 
 ### Dataset
 
-Due to company privacy and copyright issues in the design of the datasets we used in this paper, we do not disclose the company datasets and risk labels used in the paper, if you need the full dataset, please contact with us [biwendong20g@ict.ac.cn](biwendong20g@ict.ac.cn)
+Due to company privacy and copyright issues in the design of the datasets that we used, we do not disclose the company attributes and risk labels used in the paper.
 
 ### Training
 
@@ -49,6 +49,4 @@ python3 main.py \
  --path_tribe_files {path to tribe-graph files} \
  --path_tribe_order {path to tribe_graph order file}
 ```
-
-If you have any questions on running the code, pleas feel free to E-mail me: [biwendong20g@ict.ac.cn](biwendong20g@ict.ac.cn) .
 
