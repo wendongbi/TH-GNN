@@ -29,6 +29,7 @@ TH-GNN (our proposed model) is a hierarchical graph neural network model for com
 ### Dataset
 
 Due to company privacy and copyright issues in the design of the datasets that we used, we do not disclose the company attributes and risk labels used in the paper.
+* Company relationship data can be obtained through the paid API provided by Tianyancha (https://open.tianyancha.com/open/783). The above website also provides data samples in json format. Besides, node attributes are in csv format (company ID, feature 1, feature 2,...), which can be read through pandas. The node label comes from the wind database (https://www.wind.com.cn/mobile/EDB/zh.html) and is combined with expert annotations. The data involves corporate privacy and cannot be disclosed. Thank you for your understanding. For more information about data format and reading issues, please refer to the files: data_preprocess.py and dataset.py in the repository.
 
 ### Training
 
